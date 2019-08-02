@@ -15,7 +15,7 @@ const Routes = () => (
   <ConnectedRouter history={history}>
     <Switch>
       <Guest path="/signin" component={SignIn} />
-      <Guest path="/signup" component={SignUp} />
+      <Guest path="/register" component={SignUp} />
       <Private path="/" exact component={Main} />
     </Switch>
   </ConnectedRouter>

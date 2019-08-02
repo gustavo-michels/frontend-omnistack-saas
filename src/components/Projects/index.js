@@ -3,12 +3,16 @@ import React, { Component } from 'react';
 
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+
 import ProjectsActions from 'store/ducks/projects';
+import MembersActions from 'store/ducks/members';
 
 import PropTypes from 'prop-types';
 
+import Can from 'components/Can';
 import Modal from 'components/Modal';
 import Button from 'styles/components/Button';
+import Members from 'components/Members';
 
 import { Container, Project } from './styles';
 
@@ -16,11 +20,12 @@ class Projects extends Component {
   static propTypes = {
     getProjectsRequest: PropTypes.func.isRequired,
     openProjectModal: PropTypes.func.isRequired,
+    openMembersModal: PropTypes.func.isRequired,
     closeProjectModal: PropTypes.func.isRequired,
     createProjectRequest: PropTypes.func.isRequired,
     activeTeam: PropTypes.shape({
       name: PropTypes.string,
-    }).isRequired,
+    }),
     projects: PropTypes.shape({
       data: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.number,
@@ -28,7 +33,14 @@ class Projects extends Component {
       })),
       projectModalOpen: PropTypes.bool,
     }).isRequired,
+    members: PropTypes.shape({
+      membersModalOpen: PropTypes.bool,
+    }).isRequired,
   };
+
+  static defaultProps = {
+    activeTeam: null,
+  }
 
   state = {
     newProject: '',
@@ -57,7 +69,14 @@ class Projects extends Component {
   }
 
   render() {
-    const { activeTeam, projects, openProjectModal, closeProjectModal } = this.props;
+    const {
+      activeTeam,
+      projects,
+      members,
+      openProjectModal,
+      closeProjectModal,
+      openMembersModal,
+    } = this.props;
     const { newProject } = this.state;
 
     if (!activeTeam) return null;
@@ -66,8 +85,10 @@ class Projects extends Component {
         <header>
           <h1>{activeTeam.name}</h1>
           <div>
-            <Button onClick={openProjectModal}>+ Novo</Button>
-            <Button onClick={() => {}}>+ Membros</Button>
+            <Can checkPermission="projects_create">
+              <Button onClick={openProjectModal}>+ Novo</Button>
+            </Can>
+            <Button onClick={openMembersModal}>+ Membros</Button>
           </div>
         </header>
 
@@ -94,6 +115,8 @@ class Projects extends Component {
             </form>
           </Modal>
         )}
+
+        { members.membersModalOpen && <Members /> }
       </Container>
     );
   }
@@ -101,10 +124,12 @@ class Projects extends Component {
 
 const mapStateToProps = state => ({
   activeTeam: state.teams.active,
+  members: state.members,
   projects: state.projects,
 });
 
-const mapDispatchToProps = dispatch => bindActionCreators(ProjectsActions, dispatch);
+const mapDispatchToProps = dispatch =>
+  bindActionCreators({ ...ProjectsActions, ...MembersActions }, dispatch);
 
 export default connect(
   mapStateToProps,
